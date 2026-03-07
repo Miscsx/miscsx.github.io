@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Maisemagalleria – JSON + Fetch</title>
-  <meta name="description" content="Pieni responsiivinen Bootstrap-sivusto, joka yhdistää oman JSON-datan ja Picsum Photos -palvelusta haetut satunnaiset kuvat." />
+  <title>Maisemagalleria – ID-pohjaiset kuvat</title>
+  <meta name="description" content="Bootstrap 5 -sivusto, jossa kuvat ladataan picsum.photos -palvelusta ID:n avulla. JSON + inline fetch, max 6 kuvaa." />
 
   <!-- Bootstrap 5 CSS (CDN) -->
   <link
@@ -29,9 +29,9 @@
       </button>
       <div id="nav" class="collapse navbar-collapse">
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="#galleria">Galleria</a></li>
-          <li class="nav-item"><a class="nav-link" href="#json">JSON-data</a></li>
-          <li class="nav-item"><a class="nav-link" href="#tietoa">Tietoa</a></li>
+          <li class="nav-item"><a href="#galleria" class="nav-link">Galleria</a></li>
+          <li class="nav-item"><a href="#json" class="nav-link">JSON-data</a></li>
+          <li class="nav-item"><a href="#tietoa" class="nav-link">Tietoa</a></li>
         </ul>
       </div>
     </div>
@@ -40,9 +40,9 @@
   <!-- HERO -->
   <header class="hero text-center">
     <div class="container">
-      <h1 id="pageTitle" class="fw-bold">Maisemagalleria – JSON + Fetch</h1>
-      <p id="pageSubtitle" class="lead">Satunnaisia maisemia Picsum Photos -palvelusta (max 6)</p>
-      <a class="btn btn-outline-light mt-3" href="#galleria">Katso galleria</a>
+      <h1 id="pageTitle" class="fw-bold">Maisemagalleria – ID-pohjaiset kuvat</h1>
+      <p id="pageSubtitle" class="lead">Kuvat ladataan picsum.photos -palvelusta ID:n avulla (max 6).</p>
+      <a href="#galleria" class="btn btn-outline-light mt-3">Katso galleria</a>
     </div>
   </header>
 
@@ -56,20 +56,14 @@
       <button id="refreshBtn" class="btn btn-outline-primary btn-sm">Päivitä kuvat</button>
     </div>
 
-    <!-- Latausspinneri -->
-    <div id="loader" class="d-flex align-items-center justify-content-center py-5">
-      <div class="spinner-border text-primary me-2" role="status" aria-hidden="true"></div>
-      <span>Ladataan kuvia…</span>
-    </div>
-
-    <!-- Kuvakorttien grid -->
-    <div id="grid" class="row g-4" hidden></div>
+    <!-- Kuvakorttien grid (näkyy heti ja täyttyy sitä mukaa) -->
+    <div id="grid" class="row g-4"></div>
   </main>
 
   <!-- JSON-ESITTELY -->
   <section class="container my-5" id="json">
     <h2 class="h4 mb-3">JSON-tiedosto (data.json)</h2>
-    <p>Tämä sivu lukee ja hyödyntää alla olevaa omaa JSON-dataa, ja yhdistää sen ulkoiseen Picsum Photos -kuvalähteeseen:</p>
+    <p>Tämä sivu lukee oman JSON-tiedoston, jossa määriteltynä kuville käytettävät Picsum-ID:t.</p>
     <pre class="bg-dark text-light p-3 rounded"><code id="jsonPreview">{ ... }</code></pre>
   </section>
 
@@ -77,9 +71,9 @@
   <section class="container my-5" id="tietoa">
     <h2 class="h4">Tietoa sivusta</h2>
     <ul>
-      <li>Bootstrap 5 (Navbar, Cards, Modal, Spinner, Alert)</li>
-      <li>Oma JSON-tiedosto: <code>data.json</code> (otsikko, kuva-aiheet)</li>
-      <li>Ulkoisen palvelun JSON: <code>https://picsum.photos/v2/list?limit=6</code></li>
+      <li>Bootstrap 5: Navbar, Cards, Modal, Alert</li>
+      <li>Oma JSON-tiedosto: <code>data.json</code> (otsikko, alaotsikko, kuvalista ID:illä)</li>
+      <li>Kuvat muodostetaan suoraan ID-URL:sta: <code>https://picsum.photos/id/{ID}/600/400</code></li>
       <li>Kuvia enintään 6</li>
       <li>JavaScript on <strong>inline</strong> (ei erillistä .js-tiedostoa)</li>
     </ul>
@@ -89,11 +83,11 @@
   <footer class="py-4 bg-dark text-white-50">
     <div class="container d-flex justify-content-between align-items-center">
       <small>&copy; <span id="year"></span> Maisemagalleria</small>
-      <a class="link-light" href="#">Takaisin ylös</a>
+      <a href="#" class="link-light small">Takaisin ylös</a>
     </div>
   </footer>
 
-  <!-- MODAL -->
+  <!-- MODAL isoksi kuvalle -->
   <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true" aria-labelledby="imageModalLabel">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content bg-black">
@@ -116,32 +110,23 @@
   <script
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-    crossorigin="anonymous">
-  </script>
+    crossorigin="anonymous"
+  ></script>
 
-  <!-- Inline-skripti: JSON + Picsum, timeoutilla ja virhehandlauksella -->
+  <!-- Inline-skripti: lue data.json ja rakenna URL:t ID:n avulla -->
   <script>
-    // --- Asetukset ---
-    const PICSUM_API = "https://picsum.photos/v2/list?limit=6"; // max 6
-    const FETCH_TIMEOUT_MS = 10000; // 10 s timeout, ettei roiku ikuisesti
-
-    // --- Elementit ---
     const grid = document.getElementById("grid");
-    const loader = document.getElementById("loader");
     const alertContainer = document.getElementById("alertContainer");
-    const refreshBtn = document.getElementById("refreshBtn");
     const jsonPreview = document.getElementById("jsonPreview");
     const pageTitle = document.getElementById("pageTitle");
     const pageSubtitle = document.getElementById("pageSubtitle");
     document.getElementById("year").textContent = new Date().getFullYear();
 
-    // Modal vasta kun Bootstrap on varmasti ladattu
     let imageModal;
     window.addEventListener("DOMContentLoaded", () => {
       imageModal = new bootstrap.Modal(document.getElementById("imageModal"));
     });
 
-    // --- Apufunktiot ---
     function showAlert(message, type = "danger") {
       const wrapper = document.createElement("div");
       wrapper.innerHTML = `
@@ -154,58 +139,57 @@
       alertContainer.append(wrapper);
     }
 
-    async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), timeoutMs);
+    // Lue paikallinen JSON ja renderöi kuvat ID:n perusteella
+    async function loadFromLocalJson() {
       try {
-        const res = await fetch(url, { ...options, signal: controller.signal });
-        return res;
-      } finally {
-        clearTimeout(id);
+        const res = await fetch("data.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(\`data.json lataus epäonnistui (\${res.status})\`);
+        const data = await res.json();
+
+        // Aseta otsikot JSON:sta
+        if (data.title) pageTitle.textContent = data.title;
+        if (data.subtitle) pageSubtitle.textContent = data.subtitle;
+
+        // Näytä JSON raakamuodossa
+        jsonPreview.textContent = JSON.stringify(data, null, 2);
+
+        // Renderöi kortit (max 6)
+        renderCardsById(data.images || []);
+      } catch (err) {
+        console.error(err);
+        const tip = location.protocol === "file:"
+          ? "Vinkki: käynnistä paikallinen palvelin (Live Server tai 'python -m http.server')."
+          : "";
+        showAlert(\`Tietojen lataus epäonnistui. \${err.message}. \${tip}\`, "danger");
       }
     }
 
-    async function loadLocalJson() {
-      // HUOM: Tämä epäonnistuu jos avaat suoraan file:// — käytä paikallista palvelinta.
-      const res = await fetchWithTimeout("data.json", { cache: "no-store" });
-      if (!res.ok) throw new Error(`data.json lataus epäonnistui (${res.status})`);
-      const json = await res.json();
-
-      if (json.title) pageTitle.textContent = json.title;
-      if (json.subtitle) pageSubtitle.textContent = json.subtitle;
-      jsonPreview.textContent = JSON.stringify(json, null, 2);
-
-      return json;
-    }
-
-    async function loadPicsumImages() {
-      const res = await fetchWithTimeout(PICSUM_API, { cache: "no-store" });
-      if (!res.ok) throw new Error(`Picsum-haku epäonnistui (${res.status})`);
-      const data = await res.json();
-      return data;
-    }
-
-    function renderCards(picsum, themes = []) {
+    function renderCardsById(images) {
       grid.innerHTML = "";
-      const count = Math.min(6, picsum.length);
-      for (let i = 0; i < count; i++) {
-        const item = picsum[i];
-        const title = themes[i] || `Kuva #${item.id}`;
+      const items = images.slice(0, 6); // max 6
+      if (items.length === 0) {
+        showAlert("data.json ei sisällä kuvia (images[]). Lisää ID:itä tiedostoon.", "warning");
+        return;
+      }
 
-        const previewSrc = `https://picsum.photos/id/${item.id}/600/400`;
-        const fullSrc = `https://picsum.photos/id/${item.id}/1200/800`;
+      for (const img of items) {
+        const id = img.id;
+        const title = img.title || \`Kuva #\${id}\`;
+
+        // Muodosta URL ID:n avulla (pieni esikatselu + isompi modal-kuva)
+        const previewSrc = \`https://picsum.photos/id/\${id}/600/400\`;
+        const fullSrc = \`https://picsum.photos/id/\${id}/1200/800\`;
 
         const col = document.createElement("div");
         col.className = "col-12 col-sm-6 col-lg-4";
         col.innerHTML = `
           <div class="card shadow-sm w-100">
-            <img src="${previewSrc}" alt="Maisemakuva – ${item.author}" class="card-img-top" loading="lazy" width="600" height="400">
+            <img src="${previewSrc}" class="card-img-top" alt="${title}" loading="lazy" width="600" height="400">
             <div class="card-body">
               <h3 class="h6 card-title mb-2">${title}</h3>
-              <p class="card-text text-muted mb-3">Kuvaaja: ${item.author}</p>
               <div class="d-flex justify-content-between">
                 <button class="btn btn-primary btn-sm view-btn">Näytä isompana</button>
-                <a class="btn btn-link btn-sm p-0" href="${item.url}" target="_blank" rel="noopener noreferrer">Lähde</a>
+                <a class="btn btn-outline-secondary btn-sm" href="https://picsum.photos/id/${id}/info" target="_blank" rel="noopener">Info</a>
               </div>
             </div>
           </div>
@@ -215,10 +199,15 @@
           const modalImg = document.getElementById("modalImg");
           const modalMeta = document.getElementById("modalMeta");
           const modalTitle = document.getElementById("imageModalLabel");
+
+          // pieni fadi, ettei modal välähdä
+          modalImg.style.opacity = 0;
+          modalImg.onload = () => (modalImg.style.opacity = 1);
+
           modalImg.src = fullSrc;
-          modalImg.alt = `Suuri maisemakuva – ${item.author}`;
+          modalImg.alt = \`\${title} – suurempi näkymä\`;
           modalTitle.textContent = title;
-          modalMeta.textContent = `Kuvaaja: ${item.author} • ${item.width}×${item.height} (alkuperäinen)`;
+          modalMeta.textContent = \`Lähde: picsum.photos • ID: \${id}\`;
           imageModal.show();
         });
 
@@ -226,31 +215,10 @@
       }
     }
 
-    async function loadAll() {
-      // Näytä loader aina alussa
-      loader.hidden = false;
-      grid.hidden = true;
-      alertContainer.innerHTML = "";
+    document.getElementById("refreshBtn").addEventListener("click", loadFromLocalJson);
 
-      try {
-        const local = await loadLocalJson();      // oma JSON
-        const picsum = await loadPicsumImages(); // ulkoinen JSON
-        renderCards(picsum, local.themes || []);
-        grid.hidden = false;
-      } catch (err) {
-        console.error(err);
-        const tip = location.protocol === "file:" 
-          ? "Vinkki: käynnistä paikallinen palvelin (esim. VS Code Live Server tai 'python -m http.server')."
-          : "";
-        showAlert(`Tietojen lataus epäonnistui. ${err.message}. ${tip}`, "danger");
-      } finally {
-        // Piilota loader **aina**, myös virheessä
-        loader.hidden = true;
-      }
-    }
-
-    refreshBtn.addEventListener("click", loadAll);
-    loadAll(); // Ensilataus
+    // Ensilataus
+    loadFromLocalJson();
   </script>
 </body>
 </html>
