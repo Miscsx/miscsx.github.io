@@ -1,4 +1,3 @@
-
 /* Hero-liukuväri */
 .hero {
   background: linear-gradient(135deg, #0d6efd 0%, #20c997 100%);
@@ -19,7 +18,7 @@
   overflow: hidden;
 }
 
-/* Loader-korkeus */
-#loader {
-  min-height: 160px;
+/* Pieni sulava kuvanvaihto modalissa (valinnainen) */
+#modalImg {
+  transition: opacity 0.2s ease;
 }
