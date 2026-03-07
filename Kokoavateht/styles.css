@@ -1,0 +1,24 @@
+/* Teemavärit ja pienet efektit */
+:root {
+  --brand-primary: #0d6efd;
+  --brand-accent: #c1121f; /* punainen aksentti */
+  --brand-dark: #111827;   /* tummanharmaa */
+}
+
+.bg-gradient {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.navbar-brand,
+.nav-link.active {
+  color: var(--brand-dark);
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.75rem 1.25rem rgba(0, 0, 0, 0.08);
+  transition: all 0.15s ease-in-out;
+}
+
+footer a { color: var(--brand-primary); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
