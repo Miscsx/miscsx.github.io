@@ -1,0 +1,13 @@
+
+{
+  "title": "Maisemagalleria – JSON + Fetch",
+  "subtitle": "Satunnaisia maisemia Picsum Photos -palvelusta (max 6)",
+  "themes": [
+    "Vuoristomaisema",
+    "Talvinen järvimaisema",
+    "Kesäinen niitty",
+    "Auringonlasku meren yllä",
+    "Syksyinen metsäpolku",
+    "Lumihuippuinen huippu"
+  ]
+}
