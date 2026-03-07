@@ -1,20 +1,21 @@
+
 "use strict";
 
 /**
  * Taekwondo harrastesivun JavaScript
  * - Ensisijainen JSON: https://jsonplaceholder.typicode.com/albums/1/photos
  * - Fallback: paikallinen data.json (Picsum-kuvat)
- * - Näyttää 6 kuvaa korteissa
+ * - Näyttää 6 kuvaa korteissa (oikea <img>, ei URL-tekstinä)
  * - Bootstrap: spinner, toast, modal, grid
  * - Haku suodattaa otsikon perusteella (debounce)
  */
 
 const PRIMARY_API = "https://jsonplaceholder.typicode.com/albums/1/photos";
 const FALLBACK_API = "data.json";        // paikallinen varadata
-const GRID_COUNT = 6;                     // korttien määrä
+const GRID_COUNT   = 6;                  // korttien määrä
 
-// Pikaselektorit
-const $ = (sel, root = document) => root.querySelector(sel);
+/* ---------- Apurit ---------- */
+const $  = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
 function debounce(fn, delay = 250) {
@@ -30,13 +31,27 @@ function setError(message) {
   else { alertEl.classList.remove("d-none"); alertEl.textContent = message; }
 }
 
+function escapeText(str) {
+  // Vain tekstille (otsikot, figcaption), ei HTML:ää
+  return String(str ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+/* ---------- Globaalit ---------- */
 let allItems = [];
 let toast;
 
+/* ---------- Alustus ---------- */
 document.addEventListener("DOMContentLoaded", () => {
+  // Vuosi footerissa
   const yearEl = $("#year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
+  // Bootstrap Toast
   const toastEl = $("#mainToast");
   if (toastEl && window.bootstrap?.Toast) {
     toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 2400 });
@@ -51,8 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Tapahtumat
   $("#refreshBtn")?.addEventListener("click", fetchWithFallback);
-
   const searchInput = $("#searchInput");
   searchInput?.addEventListener("input", debounce(() => {
     const q = (searchInput.value || "").trim().toLowerCase();
@@ -60,23 +75,24 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCards(filtered);
   }, 200));
 
+  // Ensimmäinen haku
   fetchWithFallback();
 });
 
-/** Hae ensisijainen → fallback */
+/* ---------- Haku: ensisijainen → fallback ---------- */
 async function fetchWithFallback() {
   setLoading(true);
   setError("");
   $("#emptyState")?.classList.add("d-none");
 
   try {
-    // 1) kokeile ensisijaista APIa
+    // Yritä ensisijaista APIa
     const primary = await tryFetch(PRIMARY_API);
     if (primary.ok) {
       const data = await primary.json();
       allItems = normalizeArray(data).slice(0, GRID_COUNT);
     } else {
-      // 2) fallback paikalliseen dataan
+      // Fallback paikalliseen
       const fallback = await tryFetch(FALLBACK_API);
       if (!fallback.ok) throw new Error("Ei voitu hakea dataa (primary + fallback epäonnistuivat).");
       const data = await fallback.json();
@@ -95,10 +111,10 @@ async function fetchWithFallback() {
 
 async function tryFetch(url) {
   try { return await fetch(url, { method: "GET" }); }
-  catch (e) { return { ok: false, status: 0, json: async () => ([]) }; }
+  catch { return { ok: false, status: 0, json: async () => ([]) }; }
 }
 
-// Yhtenäistä taulukko: {id, title, url, thumbnailUrl}
+// Normalisoi taulukko: {id, title, url, thumbnailUrl}
 function normalizeArray(arr) {
   if (!Array.isArray(arr)) return [];
   return arr.map((x, i) => ({
@@ -109,9 +125,7 @@ function normalizeArray(arr) {
   }));
 }
 
-/* ==========
-   RENDERÖINTI
-=========== */
+/* ---------- Renderöinti ---------- */
 function renderCards(items) {
   const gridEl = $("#cardsGrid");
   if (!gridEl) return;
@@ -125,72 +139,99 @@ function renderCards(items) {
   const frag = document.createDocumentFragment();
 
   items.forEach((item) => {
-    const col = document.createElement("div");
+    const col   = document.createElement("div");
     col.className = "col-12 col-sm-6 col-lg-4";
 
-    // Ratio 4:3 ja cover → siistit, yhtenäiset thumbit
-    col.innerHTML = `
-      <div class="card h-100 shadow-sm card-hover" aria-label="Kuvakortti">
-        <div class="ratio ratio-4x3">
-          <img src="${escapeAttr(item.thumbnailUrl)}" alt="Pikkukuva #${item.id}"
-               loading="lazy" decoding="async"
-               style="object-fit:cover;width:100%;height:100%;" />
-        </div>
-        <div class="card-body d-flex flex-column">
-          <h3 class="h6 card-title">${escapeHtml(item.title)}</h3>
-          <div class="mt-auto d-flex justify-content-between align-items-center">
-            <span class="badge text-bg-light">#${item.id}</span>
-            <button class="btn btn-outline-primary btn-sm" data-id="${item.id}">Avaa</button>
-          </div>
-        </div>
-      </div>
-    `;
+    // Korttirunko
+    const card = document.createElement("div");
+    card.className = "card h-100 shadow-sm card-hover";
+    card.setAttribute("aria-label", "Kuvakortti");
 
+    // Kuvakehys (ratio 4:3)
+    const ratio = document.createElement("div");
+    ratio.className = "ratio ratio-4x3";
+
+    // *** TÄRKEÄ KOHTA: LUODAAN OIKEA <img> TAGI ***
+    const img = document.createElement("img");
+    img.src = item.thumbnailUrl;          // pikkukuva
+    img.alt = `Pikkukuva #${item.id}`;
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.style.objectFit = "cover";
+    img.style.width = "100%";
+    img.style.height = "100%";
+    ratio.appendChild(img);
+
+    // Sisältö
+    const body = document.createElement("div");
+    body.className = "card-body d-flex flex-column";
+
+    const h3 = document.createElement("h3");
+    h3.className = "h6 card-title";
+    h3.textContent = escapeText(item.title);
+
+    const actions = document.createElement("div");
+    actions.className = "mt-auto d-flex justify-content-between align-items-center";
+
+    const badge = document.createElement("span");
+    badge.className = "badge text-bg-light";
+    badge.textContent = `#${item.id}`;
+
+    const btn = document.createElement("button");
+    btn.className = "btn btn-outline-primary btn-sm";
+    btn.textContent = "Avaa";
+    btn.setAttribute("data-id", String(item.id));
+    btn.addEventListener("click", () => openDetailModal(item));
+
+    actions.appendChild(badge);
+    actions.appendChild(btn);
+
+    body.appendChild(h3);
+    body.appendChild(actions);
+
+    // Koosta kortti
+    card.appendChild(ratio);
+    card.appendChild(body);
+    col.appendChild(card);
     frag.appendChild(col);
   });
 
   gridEl.appendChild(frag);
-
-  // Modal-kuuntelijat
-  $$("button[data-id]", gridEl).forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const id = Number(btn.getAttribute("data-id"));
-      const found = allItems.find((x) => x.id === id);
-      if (found) openDetailModal(found);
-    });
-  });
 }
 
+/* ---------- Modal ---------- */
 function openDetailModal(item) {
   const modalEl = document.getElementById("infoModal");
   if (!modalEl) return;
 
-  modalEl.querySelector(".modal-title").textContent = `Kuva #${item.id}`;
-  modalEl.querySelector(".modal-body").innerHTML = `
-    <figure class="text-center">
-      <img src="${escapeAttr(item.url)}" alt="Kuva #${item.id}"
-           class="img-fluid rounded" decoding="async"
-           style="max-height:70vh;object-fit:contain;" />
-      <figcaption class="small text-muted mt-2">${escapeHtml(item.title)}</figcaption>
-    </figure>
-  `;
+  // Otsikko
+  const titleEl = modalEl.querySelector(".modal-title");
+  if (titleEl) titleEl.textContent = `Kuva #${item.id}`;
+
+  // *** OIKEA <img> ISOA KUVARUUTUA VARTEN ***
+  const bodyEl  = modalEl.querySelector(".modal-body");
+  if (bodyEl) {
+    // Tyhjennä ja luo DOM-solmut käsin
+    bodyEl.innerHTML = "";
+    const fig = document.createElement("figure");
+    fig.className = "text-center";
+
+    const big = document.createElement("img");
+    big.src = item.url;                   // isompi kuva
+    big.alt = `Kuva #${item.id}`;
+    big.className = "img-fluid rounded";
+    big.decoding = "async";
+    big.style.maxHeight = "70vh";
+    big.style.objectFit = "contain";
+
+    const cap = document.createElement("figcaption");
+    cap.className = "small text-muted mt-2";
+    cap.textContent = escapeText(item.title);
+
+    fig.appendChild(big);
+    fig.appendChild(cap);
+    bodyEl.appendChild(fig);
+  }
 
   bootstrap.Modal.getOrCreateInstance(modalEl).show();
-}
-
-/* ==========
-   ESCAPE-APURIT
-=========== */
-function escapeHtml(str) {
-  return String(str ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function escapeAttr(str) {
-  // riittää attribuuteille; pitää URL:n kelvollisena
-  return String(str ?? "").replace(/"/g, "&quot;");
 }
