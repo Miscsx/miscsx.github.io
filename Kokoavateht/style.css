@@ -1,0 +1,74 @@
+/* Yleiset */
+html, body {
+  height: 100%;
+}
+
+body {
+  scroll-behavior: smooth;
+}
+
+/* Navbar */
+.navbar {
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+.navbar .nav-link.active,
+.navbar .nav-link.show {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.navbar .nav-link:hover {
+  opacity: 0.9;
+}
+
+.navbar .form-control {
+  border-radius: .4rem;
+}
+
+.navbar .form-control:focus {
+  box-shadow: 0 0 0 .2rem rgba(255,255,255,.25);
+}
+
+@media (max-width: 991.98px) {
+  .navbar form[role="search"] {
+    margin-top: .5rem;
+  }
+}
+
+/* Karuselli */
+.carousel-item img {
+  height: 450px;       /* esimerkkikorkeus */
+  width: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.carousel-inner {
+  border-radius: .75rem;
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.10);
+}
+
+.carousel-caption {
+  text-shadow: 0 1px 2px rgba(0,0,0,.6);
+}
+
+/* Picsum-haku: kuva + JSON */
+/* responsiivisena ja keskitettynä*/
+#picsumImg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* JSON esityksen luettavuus */
+#picsumJson {
+  background: var(--bs-light, #f8f9fa);
+  border: 1px solid rgba(0,0,0,.075);
+  border-radius: .5rem;
+  padding: .75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
