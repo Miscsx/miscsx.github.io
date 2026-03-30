@@ -1,0 +1,7 @@
+x) Lue ja tiivistä. (Tässä x-alakohdassa ei tarvitse tehdä testejä tietokoneella, vain lukeminen tai kuunteleminen ja tiivistelmä riittää. Tiivistämiseen riittää muutama ranskalainen viiva. Ei siis vaadita pitkää eikä essee-muotoista tiivistelmää. Lisää kuhunkin jokin oma kysymys tai huomio.)
+Karvinen 2026: SSH public key - Login without password
+Karvinen 2026: Hello Ansible
+a) Sshecrets. Asenna SSH-demoni ja testaa se kirjautumalla SSH:lla.
+b) Pubkey. Automatisoi ssh-kirjautuminen julkisella avaimella.
+c) Hei Ansible. Tee hei maailma ansiblella ja kokeile sitä SSH:n yli.
+d) Vapaaehtoinen bonus, vaikea: kokeile Ansiblella jokin näista asetuksista: paketin asennus, asetustiedosto /etc/ alle, käynnistä jokin demoni, tee uusi käyttäjä. Tarvitset todennäköisesti sudoa, become: true.
