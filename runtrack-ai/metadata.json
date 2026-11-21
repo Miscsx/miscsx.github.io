@@ -1,6 +1,0 @@
-{
-  "name": "RunTrack AI",
-  "description": "Precision dark-navy and lime-green sports analytics and AI running coach for Garmin and Strava runners.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
