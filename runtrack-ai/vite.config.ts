@@ -6,7 +6,7 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    base: '/your-repo-name/',
+    base: '/miscsx.github.io/',
     plugins: [
       react(),
       tailwindcss(),
